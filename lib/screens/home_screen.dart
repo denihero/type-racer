@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:type_racer/constant/text.dart';
+import 'package:type_racer/screens/timer.dart';
+import 'package:type_racer/screens/widget/wpm_info_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -16,16 +18,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextCollections textCollections = TextCollections();
+  final Time time = Time();
   late TextEditingController textEditingController;
   late FocusNode focusNode;
   late bool isCorrect;
   late String text;
+  int countWord = 0;
+
 
   @override
   void initState() {
     textEditingController = TextEditingController();
     focusNode = FocusNode();
     isCorrect = false;
+    time.streamSubscription = time.counterStream.listen((event) {
+      setState(() {
+        time.duration = event;
+      });
+      if (time.duration! <= 0) {
+        Future.delayed(Duration.zero, () {
+          wpmInfo(context,countWord);
+        });
+      }
+    });
     getNewWords();
     super.initState();
   }
@@ -33,13 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     textEditingController.dispose();
+    time.streamSubscription?.cancel();
     focusNode.dispose();
     super.dispose();
   }
 
   void getNewWords() {
     setState(() {
-      text = textCollections.commonWords[Random().nextInt(textCollections.commonWords.length)];
+      text = textCollections
+          .commonWords[Random().nextInt(textCollections.commonWords.length)];
     });
   }
 
@@ -53,9 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text('${time.duration}'),
           Text(
             text,
-            style: TextStyle(fontSize: 20,color: isCorrect ? Colors.green:Colors.red),
+            style: const TextStyle(fontSize: 20),
           ),
           const SizedBox(
             height: 40,
@@ -64,31 +82,52 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: RawKeyboardListener(
               focusNode: focusNode,
-              onKey: (event){
-                if(event.data.logicalKey == LogicalKeyboardKey.space && isCorrect == true){
+              onKey: (event) {
+                if (event.data.logicalKey == LogicalKeyboardKey.space &&
+                    isCorrect == true) {
                   isCorrect = false;
                   getNewWords();
+                  countWord++;
                   textEditingController.clear();
                 }
               },
               child: TextFormField(
                 controller: textEditingController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp('[ ]')),
-                  ],
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp('[ ]')),
+                ],
                 onChanged: (value) {
                   if (value.trim() == text) {
                     isCorrect = true;
-                  }else{
+                  } else {
+                    isCorrect = false;
                   }
                 },
                 decoration: const InputDecoration(
                     hintText: 'Type your text', border: OutlineInputBorder()),
               ),
             ),
+          ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(onPressed: () {
+                time.resumeAndPause();
+                setState(() {
+                });
+              }, icon: time.streamSubscription!.isPaused ? const Icon(Icons.play_arrow):const Icon(Icons.pause)),
+              const SizedBox(
+                width: 30,
+              ),
+              IconButton(onPressed: () {
+              }, icon: const Icon(Icons.replay))
+            ],
           )
         ],
       ),
     );
   }
+
+
 }
