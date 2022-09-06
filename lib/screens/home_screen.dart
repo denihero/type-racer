@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:type_racer/constant/text.dart';
 import 'package:type_racer/screens/timer.dart';
 import 'package:type_racer/screens/widget/wpm_info_widget.dart';
@@ -25,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late String text;
   int countWord = 0;
 
-
   @override
   void initState() {
     textEditingController = TextEditingController();
@@ -34,13 +34,15 @@ class _HomeScreenState extends State<HomeScreen> {
     time.streamSubscription = time.counterStream.listen((event) {
       setState(() {
         time.duration = event;
+        print(time.duration);
       });
-      if (time.duration! <= 0) {
+      if (time.duration <= 0) {
         Future.delayed(Duration.zero, () {
-          wpmInfo(context,countWord);
+          wpmInfo(context, countWord);
         });
       }
     });
+    time.streamSubscription?.pause();
     getNewWords();
     super.initState();
   }
@@ -108,7 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -121,6 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 30,
               ),
               IconButton(onPressed: () {
+                setState(() {
+                  time.reset();
+                });
               }, icon: const Icon(Icons.replay))
             ],
           )
@@ -128,6 +132,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
 }

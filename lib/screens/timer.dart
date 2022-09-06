@@ -1,12 +1,14 @@
 import 'dart:async';
 
-class Time{
-  static const int tick = 60;
+import 'package:flutter/cupertino.dart';
+
+class Time extends ChangeNotifier{
+  static const int tick = 2;
 
   Stream<int> counterStream =
   Stream<int>.periodic(const Duration(seconds: 1), (x) => tick - x - 1)
       .take(tick);
-  int? duration = 60;
+  int duration = tick;
   StreamSubscription? streamSubscription;
 
   void resumeAndPause() {
@@ -15,6 +17,10 @@ class Time{
     }else{
       streamSubscription?.pause();
     }
+  }
+
+  void reset() {
+
   }
 
 }
