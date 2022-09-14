@@ -10,7 +10,6 @@ Future wpmInfo(BuildContext context,int countWord) async {
           actions: [
             ElevatedButton(onPressed: () {
               Navigator.pop(context);
-              Time().reset();
               ///ToDo сделать кнопку сброса счетчика
             }, child: const Text('Повторить')),
             ElevatedButton(

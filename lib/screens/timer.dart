@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 
 class Time extends ChangeNotifier{
-  static const int tick = 2;
+  static const int tick = 60;
 
   Stream<int> counterStream =
   Stream<int>.periodic(const Duration(seconds: 1), (x) => tick - x - 1)
@@ -20,6 +20,7 @@ class Time extends ChangeNotifier{
   }
 
   void reset() {
+    counterStream.take(20);
 
   }
 

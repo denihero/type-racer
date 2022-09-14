@@ -34,9 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     time.streamSubscription = time.counterStream.listen((event) {
       setState(() {
         time.duration = event;
-        print(time.duration);
       });
       if (time.duration <= 0) {
+        textEditingController.clear();
         Future.delayed(Duration.zero, () {
           wpmInfo(context, countWord);
         });
@@ -62,72 +62,85 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final minutesStr = ((time.duration / 60) % 60).floor().toString().padLeft(2, '0');
+    final secondsStr = (time.duration % 60).floor().toString().padLeft(2, '0');
     return Scaffold(
       appBar: AppBar(
         title: const Text('TypeRacer'),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text('${time.duration}'),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 20),
-          ),
           const SizedBox(
-            height: 40,
+            height: 50,
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RawKeyboardListener(
-              focusNode: focusNode,
-              onKey: (event) {
-                if (event.data.logicalKey == LogicalKeyboardKey.space &&
-                    isCorrect == true) {
-                  isCorrect = false;
-                  getNewWords();
-                  countWord++;
-                  textEditingController.clear();
-                }
-              },
-              child: TextFormField(
-                controller: textEditingController,
-                inputFormatters: [
-                  FilteringTextInputFormatter.deny(RegExp('[ ]')),
-                ],
-                onChanged: (value) {
-                  if (value.trim() == text) {
-                    isCorrect = true;
-                  } else {
-                    isCorrect = false;
-                  }
-                },
-                decoration: const InputDecoration(
-                    hintText: 'Type your text', border: OutlineInputBorder()),
-              ),
+          Text('$minutesStr:$secondsStr',style: const TextStyle(fontSize: 40),),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '${text}',
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RawKeyboardListener(
+                    focusNode: focusNode,
+                    onKey: (event) {
+                      if (event.data.logicalKey == LogicalKeyboardKey.space &&
+                          isCorrect == true) {
+                        isCorrect = false;
+                        getNewWords();
+                        countWord++;
+                        textEditingController.clear();
+                      }
+                    },
+                    child: TextFormField(
+                      enabled: time.streamSubscription!.isPaused ? false:time.duration <=0 ? false:true,
+                      autofocus: time.streamSubscription!.isPaused? false:true,
+                      controller: textEditingController,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(RegExp('[ ]')),
+                      ],
+                      onChanged: (value) {
+                        if (value.trim() == text) {
+                          isCorrect = true;
+                        } else {
+                          isCorrect = false;
+                        }
+                      },
+                      decoration: const InputDecoration(
+                          hintText: 'Type your text', border: OutlineInputBorder()),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(onPressed: () {
+                      time.resumeAndPause();
+                      setState(() {
+                      });
+                    }, icon: time.streamSubscription!.isPaused ? const Icon(Icons.play_arrow):const Icon(Icons.pause)),
+                    const SizedBox(
+                      width: 30,
+                    ),
+                    IconButton(onPressed: () {
+                        time.reset();
+                    }, icon: const Icon(Icons.replay))
+                  ],
+                )
+              ],
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(onPressed: () {
-                time.resumeAndPause();
-                setState(() {
-                });
-              }, icon: time.streamSubscription!.isPaused ? const Icon(Icons.play_arrow):const Icon(Icons.pause)),
-              const SizedBox(
-                width: 30,
-              ),
-              IconButton(onPressed: () {
-                setState(() {
-                  time.reset();
-                });
-              }, icon: const Icon(Icons.replay))
-            ],
-          )
         ],
       ),
     );
