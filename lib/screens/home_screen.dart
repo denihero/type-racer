@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     focusNode = FocusNode();
     isCorrect = false;
     time.streamSubscription = time.counterStream.listen((event) {
+      print(event);
       setState(() {
         time.duration = event;
       });
@@ -53,6 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
     time.streamSubscription?.cancel();
     focusNode.dispose();
     super.dispose();
+  }
+
+  void reset() {
+    time.streamSubscription?.cancel();
+    time.streamSubscription = time.counterStream.listen((event) {
+      setState(() {
+        time.duration = event;
+      });
+    });
   }
 
   void getNewWords() {
@@ -134,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 30,
                     ),
                     IconButton(onPressed: () {
-                        time.reset();
+                      reset();
                     }, icon: const Icon(Icons.replay))
                   ],
                 )
